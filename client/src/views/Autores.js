@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { autorsGet } from '../actions/autorsGet';
 import Autoresform from '../components/AutoresForm';
+import  axios  from 'axios';
 
 
 const Autores = () => {
@@ -21,32 +22,22 @@ const Autores = () => {
     
     const crearAutor = (autor) => {
 
-        fetch("http://localhost:8000/api/autor/new",{
-            method:"POST",
-            body:JSON.stringify(autor),
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-              }
-        })
-        .then((res) =>{
-            res.json()})
-        .then((res) => {
-            console.log(res)
-            console.log("autor creado");
-            setAutores([...autores,res.autor])
-        })
-        .catch(err=>{
-            console.log(err)
-            const errorResponse = err.errors.message;
-            const errorArr = [];
-            console.log(errorArr)
-            for (const key of Object.keys(errorResponse)){
-                errorArr.push(errorResponse[key].message)
-            }
-            setErrors(errorArr);
-        })
-    }
+        axios.post("http://localhost:8000/api/autor/new", autor)
+            .then(res => {
+                console.log("autor creado");
+                setAutores([...autores,res.data.autor])
+            })
+            .catch(err=>{
+                console.log(err)
+                const errorResponse = err.response.data.errors;
+                const errorArr = [];
+                console.log(errorArr)
+                for (const key of Object.keys(errorResponse)){
+                    errorArr.push(errorResponse[key].message)
+                }
+                setErrors(errorArr);
+            })
+        }
 
     const eliminarAutor = (idAutor) => {
         fetch('http://localhost:8000/api/autor/delete/'+idAutor,{
@@ -59,16 +50,13 @@ const Autores = () => {
         })
     }
 
-
-
     return (
         <div>
             <div>
                 <h1>Favorite Authors</h1>
             </div>
-            <Autoresform initialfirstName="" initiallastName="" onSubmitProp={crearAutor}>
-            {errors?.map((err,i) => <p key={i}>{err.errors}</p>)}
-            </Autoresform>
+            {errors?.map((err, i) => <p key={i}>{err}</p>)}
+            <Autoresform initialfirstName="" initiallastName="" onSubmitProp={crearAutor}></Autoresform>
             {autores?.map((autor,i) =>{
                 return(
                     <div key={i}>
